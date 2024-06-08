@@ -31,7 +31,7 @@ migrate_working_dir/
 .pub/
 /build/
 
-lib\const.dart
+lib/const.dart
 
 # Symbolication related
 app.*.symbols
