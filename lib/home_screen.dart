@@ -1,3 +1,7 @@
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
@@ -28,7 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     try {
       String question = chatMessage.text;
-      gemini.streamGenerateContent(question).listen((event) {
+      List<Uint8List>? images;
+      if(chatMessage.medias?.isNotEmpty ?? false){
+        images=[File(chatMessage.medias!.first.url).readAsBytesSync()];
+      }
+      gemini.streamGenerateContent(question,images: images).listen((event) {
         ChatMessage? lastMessage = messages.firstOrNull;
         if (lastMessage != null && lastMessage.user == geminiUser) {
           lastMessage = messages.removeAt(0);
@@ -55,9 +63,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _sendMediaMessage() async{
+  void _sendMediaMessage() async {
     ImagePicker picker = ImagePicker();
     XFile? file = await picker.pickImage(source: ImageSource.gallery);
+    if (file != null) {
+      ChatMessage chatMessage = ChatMessage(
+          user: currentUser,
+          createdAt: DateTime.now(),
+          text: "Describe this picture",
+          medias: [
+            ChatMedia(url: file.path, fileName: "", type: MediaType.image)
+          ]);
+          _sendMessage(chatMessage);
+    }
   }
 
   Widget _buildUI() {
